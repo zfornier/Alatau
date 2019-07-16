@@ -10,7 +10,7 @@
 
 //#define DEBUG_PATH
 
-#define SEPARATE_DIR
+//#define SEPARATE_DIR
 
 #define OMP_THREADS
 
