@@ -1,0 +1,6 @@
+In file included from xeon_plasma.h(11),
+                 from main.cpp(1):
+gpu_plasma.h(1664): warning #3180: unrecognized OpenMP #pragma
+  #pragma omp parallel for
+  ^
+

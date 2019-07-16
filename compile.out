@@ -1,0 +1,4 @@
+icc: error #10236: File not found:  'main.cxx'
+icc: command line warning #10006: ignoring unknown option '-fmaxrregcount=128'
+icc: command line warning #10006: ignoring unknown option '-arch=sm_35'
+icc: command line error: no files specified; for help type "icc -help"
