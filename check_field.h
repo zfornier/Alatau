@@ -203,7 +203,9 @@ double CheckGPUArraySilent	(double* a, double* d_a)
 	    err = getLastError();
 	    if(err != 0)
 	            {
-	             	printf("CheckArraySilent err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+	             	printf("CheckArraySilent err %d %s \n",err,cudaGetErrorString(err));
+#endif
 	            	exit(0);
 	            }
 
@@ -228,7 +230,9 @@ double printGPUArray	(double* d_a,int num,int nt, char *name)
 	    err = getLastError();
 	    if(err != 0)
 	            {
-	             	printf("printGPUArray err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+	             	printf("printGPUArray err %d %s \n",err,cudaGetErrorString(err));
+#endif
 	            	exit(0);
 	            }
 
@@ -267,9 +271,11 @@ double saveVectorField(double *x,double *y,double *z,
 		   first = 0;
 		}
 
+#ifdef __CUDACC__
 		cudaMemcpy(h_x,x,size*sizeof(double),cudaMemcpyDeviceToHost);
 		cudaMemcpy(h_y,y,size*sizeof(double),cudaMemcpyDeviceToHost);
 		cudaMemcpy(h_z,z,size*sizeof(double),cudaMemcpyDeviceToHost);
+#endif
 
 		fwrite(h_x,sizeof(double),size,f);
 		fwrite(h_y,sizeof(double),size,f);

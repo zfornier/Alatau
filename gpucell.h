@@ -25,7 +25,9 @@ void dbgPrintGPUParticleAttribute(Cell<Particle,DIMENSIONS> *d_c,int n_particle,
     err = MemoryCopy(h_c,d_c,sizeof(Cell<Particle,DIMENSIONS>),DEVICE_TO_HOST);
     if(err != 0)
         {
-        	printf("pyFieldsToGPU err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+        	printf("pyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
         	exit(0);
         }
     double *vec = h_c->doubParticleArray + shift;
@@ -299,7 +301,9 @@ void copyCellFromDevice(GPUCell<Particle,dims>* d_src,GPUCell<Particle,dims>* h_
 	int err = getLastError();
 	if(err != 0)
 		{
-			 printf(" copyCellFromDevice enter %d %s \n ",err,getErrorString(err));
+#ifdef __CUDACC__
+			 printf(" copyCellFromDevice enter %d %s \n ",err,cudaGetErrorString(err));
+#endif
 			 exit(0);
 		}
 
@@ -309,10 +313,12 @@ void copyCellFromDevice(GPUCell<Particle,dims>* d_src,GPUCell<Particle,dims>* h_
 	err = MemoryCopy(h_copy_of_d_src,d_src,sizeof(GPUCell<Particle,dims>),DEVICE_TO_HOST);
 	if(err != 0)
 	{
-		 printf(" copyCellFromDevice1 %d %s \n ",err,getErrorString(err));
+#ifdef __CUDACC__
+		 printf(" copyCellFromDevice1 %d %s \n ",err,cudaGetErrorString(err));
+#endif
 		 exit(0);
 	}
-	//printf("Cuda error: %d: %s.\n", code,getErrorString((cudaError_t) code));
+	//printf("Cuda error: %d: %s.\n", code,cudaGetErrorString((cudaError_t) code));
     if(h_copy_of_d_src->number_of_particles < 0 || h_copy_of_d_src->number_of_particles > MAX_particles_per_cell)
     {
     	int qq = 0;
@@ -330,7 +336,9 @@ void copyCellFromDevice(GPUCell<Particle,dims>* d_src,GPUCell<Particle,dims>* h_
 			   sizeof(Particle)*MAX_particles_per_cell,DEVICE_TO_HOST);
 	if(code != 0)
 	{
-		 printf(" copyCellFromDevice3 %d %s \n ",code,getErrorString(code));
+#ifdef __CUDACC__
+		 printf(" copyCellFromDevice3 %d %s \n ",code,cudaGetErrorString(code));
+#endif
 		 exit(0);
 	}
 
@@ -472,7 +480,7 @@ void printFileCellParticles(FILE *f,GPUCell<Particle,dims> *h_copy_of_d_src)
 				this->cnum.x,
 				this->cnum.y,
 				this->cnum.z(),
-				i,(int)p.sort,p.fortran_number,isPointInCell(p.GetX()),
+				i,(int)p.sort,p.fortran_number,this->isPointInCell(p.GetX()),
 		        p.X.x,p.X.y,p.X.z(),p.pu ,p.pv,p.pw,p.q_m,p.m);
 		sorts[(int)p.sort] += 1;
 	}
@@ -503,7 +511,9 @@ void addParticlesToCellOnDevice(GPUCell<Particle,dims>* d_src,GPUCell<Particle,d
 	int err = getLastError();
 	if(err != 0)
 		{
+#ifdef __CUDACC__
 			 printf(" copyCellFromDevice enter %d %s \n ",err,getErrorString(err));
+#endif
 			 exit(0);
 		}
 
@@ -513,7 +523,10 @@ void addParticlesToCellOnDevice(GPUCell<Particle,dims>* d_src,GPUCell<Particle,d
 	err = MemoryCopy(h_copy_of_d_src,d_src,sizeof(GPUCell<Particle,dims>),DEVICE_TO_HOST);
 	if(err != 0)
 	{
-		 printf(" copyCellFromDevice1 %d %s \n ",err,getErrorString(err));
+
+#ifdef __CUDACC__
+		 printf(" copyCellFromDevice1 %d %s \n ",err,cudaGetErrorString(err));
+#endif
 		 exit(0);
 	}
 	//printf("Cuda error: %d: %s.\n", code,getErrorString((cudaError_t) code));
@@ -534,7 +547,9 @@ void addParticlesToCellOnDevice(GPUCell<Particle,dims>* d_src,GPUCell<Particle,d
 			   sizeof(Particle)*MAX_particles_per_cell,DEVICE_TO_HOST);
 	if(code != 0)
 	{
-		 printf(" copyCellFromDevice3 %d %s \n ",code,getErrorString(code));
+#ifdef __CUDACC__
+		 printf(" copyCellFromDevice3 %d %s \n ",code,cudaGetErrorString(code));
+#endif
 		 exit(0);
 	}
 

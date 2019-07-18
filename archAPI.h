@@ -10,6 +10,8 @@
 
 #include "read_particles.h"
 
+#include<string.h>
+
 #define HOST_TO_DEVICE   -131313
 #define HOST_TO_HOST     -131314
 #define DEVICE_TO_HOST   -131315
@@ -109,43 +111,43 @@ typedef struct {
 #define COPY_FUNCTION_POINTER(dst,src) {*(dst) = src;}
 #endif
 
-#ifdef __CUDACC__
-__device__ void BlockThreadSynchronize()
-{
-    __syncthreads();
-}
-#else
-void BlockThreadSynchronize(){}
-#endif
+//#ifdef __CUDACC__
+//__device__ void BlockThreadSynchronize()
+//{
+//    __syncthreads();
+//}
+////#else
+////void BlockThreadSynchronize(){}
+//#endif
 
-#ifdef __CUDACC__
-__device__
-#endif
-double MultiThreadAdd(double *address, double val)
-{
-//	double assumed,old=*address;
-#ifdef __CUDACC__
-    double assumed,old=*address;
-    do {
-        assumed=old;
-        old= __longlong_as_double(atomicCAS((unsigned long long int*)address,
-                    __double_as_longlong(assumed),
-                    __double_as_longlong(val+assumed)));
-    }while (assumed!=old);
-#else
-    double old;
-
-#ifdef OMP_THREADS
-#pragma omp atomic
-#endif
-
-    *address += val;
-
-    old = *address;
-#endif
-
-    return old;
-}
+//#ifdef __CUDACC__
+//__device__
+//#endif
+//double MultiThreadAdd(double *address, double val)
+//{
+////	double assumed,old=*address;
+//#ifdef __CUDACC__
+//    double assumed,old=*address;
+//    do {
+//        assumed=old;
+//        old= __longlong_as_double(atomicCAS((unsigned long long int*)address,
+//                    __double_as_longlong(assumed),
+//                    __double_as_longlong(val+assumed)));
+//    }while (assumed!=old);
+//#else
+//    double old;
+//
+//#ifdef OMP_THREADS
+//#pragma omp atomic
+//#endif
+//
+//    *address += val;
+//
+//    old = *address;
+//#endif
+//
+//    return old;
+//}
 
 //class cudaAPI{
 //public:

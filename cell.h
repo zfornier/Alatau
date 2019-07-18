@@ -27,6 +27,36 @@
 
 using namespace std;
 
+#ifdef __CUDACC__
+__device__
+#endif
+double MultiThreadAdd(double *address, double val)
+{
+//	double assumed,old=*address;
+#ifdef __CUDACC__
+    double assumed,old=*address;
+    do {
+        assumed=old;
+        old= __longlong_as_double(atomicCAS((unsigned long long int*)address,
+                    __double_as_longlong(assumed),
+                    __double_as_longlong(val+assumed)));
+    }while (assumed!=old);
+#else
+    double old;
+
+#ifdef OMP_THREADS
+#pragma omp atomic
+#endif
+
+    *address += val;
+
+    old = *address;
+#endif
+
+    return old;
+}
+
+
 
 
 #define PARTICLE_MASS_TOLERANCE 1e-15
@@ -1981,6 +2011,7 @@ bool Insert(Particle& p)
 
 void copyCellFromHostToDevice(Cell<Particle,dims> *d_p,Cell<Particle,dims> *h_p)
 {
+#ifdef __CUDACC__
      cudaError_t err;
 	 cudaMalloc((void **)&d_p,sizeof(Cell<Particle,dims>));
      err = cudaMemcpy(d_p,h_p,sizeof(Cell<Particle,dims>),cudaMemcpyHostToDevice);
@@ -1989,6 +2020,7 @@ void copyCellFromHostToDevice(Cell<Particle,dims> *d_p,Cell<Particle,dims> *h_p)
 		printf("copyCellFromHostToDevice err %d %s \n",err,cudaGetErrorString(err));
 		exit(0);
 	 }
+#endif
 }
 
 

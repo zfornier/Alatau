@@ -772,7 +772,10 @@ __device__ void GPU_StepAllCells_SingleNode(Cell<Particle,dims>  **cells,
 			index1 ++;
 		}
 #endif
-BlockThreadSynchronize();
+
+#ifdef __CUDACC__
+    __syncthreads();
+#endif
     index = tnx;
 	while(index < c->number_of_particles)
 	{
@@ -804,8 +807,9 @@ BlockThreadSynchronize();
         index += params->particles_processed_by_a_single_thread;
 	}
 
-
-    BlockThreadSynchronize();
+#ifdef __CUDACC__
+    __syncthreads();
+#endif
 
     index= tnx;
     AsyncCopy((double*)c->Jx,(double*)c_jx,index,CellExtent*CellExtent*CellExtent);
@@ -832,7 +836,9 @@ BlockThreadSynchronize();
 
 #endif
 
-    BlockThreadSynchronize();
+#ifdef __CUDACC__
+    __syncthreads();
+#endif
 
 
 
@@ -1026,7 +1032,7 @@ SingleNodeFunctionType h_add;
 __device__ SingleNodeFunctionType d_emh1 = MagneticField_SingleNode;
 SingleNodeFunctionType h_emh1;
 
-
+#ifdef __CUDACC__
 template <template <class Particle,int dims> class Cell,int dims>
 __global__ void GPU_Universal_Kernel(Cell<Particle,dims>  **cells,
 		KernelParams *params,SingleNodeFunctionType snf
@@ -1045,14 +1051,14 @@ __global__ void GPU_Universal_Kernel(Cell<Particle,dims>  **cells,
 		snf(cells,params,nx,ny,nz,th_nx,th_ny,th_nz);
 //		GPU_SetAllCurrentsToZero_SingleNode(cells,nx,ny,nz);
 }
+#endif
 
 
 
 
 
 
-
-
+#ifdef __CUDACC__
 
 template <template <class Particle,int dims> class Cell,int dims>
 __global__ void GPU_SetFieldsToCells(Cell<Particle,dims>  **cells,
@@ -1071,6 +1077,7 @@ __global__ void GPU_SetFieldsToCells(Cell<Particle,dims>  **cells,
 
 	nc.readFieldsFromArrays(Ex,Ey,Ez,Hx,Hy,Hz,threadIdx);
 }
+#endif
 
 __host__ __device__
 double CheckArraySize(double* a, double* dbg_a,int size)
@@ -1097,7 +1104,7 @@ double CheckArraySize(double* a, double* dbg_a,int size)
 	    return (1.0-((double)wrong/(size)));
 	}
 
-
+#ifdef __CUDACC__
 template <template <class Particle,int dims> class Cell,int dims>
 __global__ void GPU_WriteAllCurrents(Cell<Particle,dims>  **cells,int n0,
 		      double *jx,double *jy,double *jz,double *rho)
@@ -1133,7 +1140,9 @@ __global__ void GPU_WriteAllCurrents(Cell<Particle,dims>  **cells,int n0,
 		         MultiThreadAdd(&(jz[n]),t);
 
 }
+#endif
 
+#ifdef __CUDACC__
 template <template <class Particle,int dims> class Cell,int dims>
 __global__ void GPU_WriteControlSystem(Cell<Particle,dims>  **cells)
 {
@@ -1150,11 +1159,12 @@ __global__ void GPU_WriteControlSystem(Cell<Particle,dims>  **cells)
 	 nc.SetControlSystemToParticles();
 
 }
+#endif
 
 
 
 
-
+#ifdef __CUDACC__
 template <template <class Particle,int dims> class Cell,int dims>
 __global__ void GPU_CollectStrayParticles(Cell<Particle,dims>  **cells,int nt)
 {
@@ -1213,7 +1223,7 @@ __global__ void GPU_CollectStrayParticles(Cell<Particle,dims>  **cells,int nt)
 	c->printCellParticles("STRAY-FINAL",nt);
 
 }
-
+#endif
 
 
 __device__ void copyCellDouble(CellDouble *dst,CellDouble *src,unsigned int n)
@@ -1244,6 +1254,7 @@ __device__ void copyCellDouble(CellDouble *dst,CellDouble *src,unsigned int n,ui
 	}
 }
 
+#ifdef __CUDACC__
 template <template <class Particle,int dims> class Cell,int dims>
 __global__ void GPU_GetCellNumbers(Cell<Particle,dims>  **cells,
 		                         int *numbers)
@@ -1253,7 +1264,7 @@ __global__ void GPU_GetCellNumbers(Cell<Particle,dims>  **cells,
 
 		numbers[blockIdx.x] = (*c).number_of_particles;
 }
-
+#endif
 
 template <template <class Particle,int dims> class Cell,int dims>
 __global__ void GPU_ControlAllCellsCurrents(Cell<Particle,dims>  **cells,int n,int i,CellDouble *jx,CellDouble *jy,CellDouble *jz)
@@ -1299,7 +1310,7 @@ void add_Element(
 //    printf("bddE n %10d i %5d l %5d k %5d %15.5e \n",n,i,l,k,H[n]);
 }
 
-
+#ifdef __CUDACC__
 template <template <class Particle,int dims> class Cell,int dims>
 __global__
 void GPU_emh2(
@@ -1315,7 +1326,7 @@ void GPU_emh2(
 
 	emh2_Element(c0,i_s+nx,l_s+ny,k_s+nz,Q,H);
 }
-
+#endif
 
 
 
@@ -1343,6 +1354,7 @@ void emh1_Element(
     H[n] += Q[n];
 }
 
+#ifdef __CUDACC__
 template <template <class Particle,int dims> class Cell,int dims>
 __global__
 void GPU_emh1(
@@ -1360,6 +1372,7 @@ void GPU_emh1(
 
 	emh1_Element(c0,i_s+nx,l_s+ny,k_s+nz,Q,H,E1,E2,c1,c2,dx1,dy1,dz1,dx2,dy2,dz2);
 }
+#endif
 
 __host__ __device__
 	void emeElement(Cell<Particle,DIMENSIONS> *c,int i,int l,int k,double *E,double *H1, double *H2,
@@ -1388,6 +1401,8 @@ void periodicElement(Cell<Particle,DIMENSIONS> *c,int i,int k,double *E,int dir,
 
 }
 
+
+#ifdef __CUDACC__
 template <template <class Particle,int dims> class Cell,int dims>
 __global__ void GPU_periodic(Cell<Particle,dims>  **cells,
                              int i_s,int k_s,
@@ -1400,6 +1415,8 @@ __global__ void GPU_periodic(Cell<Particle,dims>  **cells,
 
 	periodicElement(c0,nx+i_s,nz+k_s,E, dir,to,from);
 }
+#endif
+
 
 __host__ __device__
 void periodicCurrentElement(Cell<Particle,DIMENSIONS> *c,int i,int k,double *E,int dir, int dirE,int N)
@@ -1427,6 +1444,7 @@ void periodicCurrentElement(Cell<Particle,DIMENSIONS> *c,int i,int k,double *E,i
     E[n_Nm2] = E[n0];
 }
 
+#ifdef __CUDACC__
 template <template <class Particle,int dims> class Cell,int dims>
 __global__ void GPU_CurrentPeriodic(Cell<Particle,dims>  **cells,double *E,int dirE, int dir,
                              int i_s,int k_s,int N)
@@ -1437,7 +1455,9 @@ __global__ void GPU_CurrentPeriodic(Cell<Particle,dims>  **cells,double *E,int d
 
 	periodicCurrentElement(c0,nx+i_s,nz+k_s,E, dir,dirE,N);
 }
+#endif
 
+#ifdef __CUDACC__
 template <template <class Particle,int dims> class Cell,int dims>
 __global__ void GPU_eme(
 
@@ -1460,7 +1480,9 @@ __global__ void GPU_eme(
 			    	  		J,c1,c2,tau,
 			    	  		dx1,dy1,dz1,dx2,dy2,dz2);
 }
+#endif
 
+#ifdef __CUDACC__
 template <template <class Particle,int dims> class Cell,int dims>
 __global__ void copy_pointers(Cell<Particle,dims>  **cells,int *d_flags,double_pointer *d_pointers)
 {
@@ -1470,7 +1492,7 @@ __global__ void copy_pointers(Cell<Particle,dims>  **cells,int *d_flags,double_p
 	c->d_wrong_current_particle_attributes = d_pointers[blockIdx.x];
 
 }
-
+#endif
 
 
 template <template <class Particle,int dims> class Cell,int dims >
@@ -1825,101 +1847,131 @@ void copyFieldsToGPU()
     err = MemoryCopy(d_Ex,Ex,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
     {
-    	printf("1copyFieldsToGPU err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+    	printf("1copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
     	exit(0);
     }
     err = MemoryCopy(d_Ey,Ey,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
     {
-     	printf("2copyFieldsToGPU err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+     	printf("2copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
     	exit(0);
     }
 
     err = MemoryCopy(d_Ez,Ez,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
-         	printf("3copyFieldsToGPU err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+         	printf("3copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
         	exit(0);
         }
 
     err = MemoryCopy(d_Hx,Hx,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
-         	printf("4copyFieldsToGPU err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+         	printf("4copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
         	exit(0);
         }
     err = MemoryCopy(d_Hy,Hy,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
-         	printf("5copyFieldsToGPU err %d %s \n",err,getErrorString(err));
-        	exit(0);
+#ifdef __CUDACC__
+         	printf("5copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
+         	exit(0);
         }
     err = MemoryCopy(d_Hz,Hz,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
-         	printf("6copyFieldsToGPU err %d %s \n",err,getErrorString(err));
-        	exit(0);
+#ifdef __CUDACC__
+         	printf("6copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
+         	exit(0);
         }
 
     err = MemoryCopy(d_Jx,Jx,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
-         	printf("7copyFieldsToGPU err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+         	printf("7copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
         	exit(0);
         }
     err = MemoryCopy(d_Jy,Jy,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
-         	printf("8copyFieldsToGPU err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+         	printf("8copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
         	exit(0);
         }
 
     err = MemoryCopy(d_Jz,Jz,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
-         	printf("9copyFieldsToGPU err %d %s \n",err,getErrorString(err));
-        	exit(0);
+#ifdef __CUDACC__
+         	printf("9copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
+         	exit(0);
         }
 
     err = MemoryCopy(d_npJx,npJx,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
-         	printf("10copyFieldsToGPU err %d %s \n",err,getErrorString(err));
-        	exit(0);
+#ifdef __CUDACC__
+         	printf("10copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
+         	exit(0);
         }
 
     err = MemoryCopy(d_npJy,npJy,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
-         	printf("11copyFieldsToGPU err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+         	printf("11copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
         	exit(0);
         }
 
     err = MemoryCopy(d_npJz,npJz,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
-         	printf("12copyFieldsToGPU err %d %s \n",err,getErrorString(err));
-        	exit(0);
+#ifdef __CUDACC__
+         	printf("12copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
+         	exit(0);
         }
 
     err = MemoryCopy(d_Qx,Qx,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
-         	printf("13copyFieldsToGPU err %d %s \n",err,getErrorString(err));
-        	exit(0);
+#ifdef __CUDACC__
+         	printf("13copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
+         	exit(0);
         }
 
     err = MemoryCopy(d_Qy,Qy,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
-         	printf("14copyFieldsToGPU err %d %s \n",err,getErrorString(err));
-        	exit(0);
+#ifdef __CUDACC__
+         	printf("14copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
+         	exit(0);
         }
 
     err = MemoryCopy(d_Qz,Qz,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
-         	printf("15copyFieldsToGPU err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+         	printf("15copyFieldsToGPU err %d %s \n",err,cudaGetErrorString(err));
+#endif
         	exit(0);
         }
 }
@@ -1984,7 +2036,7 @@ void InitGPUParticles()
 //    	printf("D i %10d AllCells %p \n",i,AllCells);
 
 #ifdef COPY_CELL_PRINTS
-        printf("cell %10d Device cell array allocated error %d %s memory: free %10.2f total %10.2f\n",i,err,GetErrorString(err),
+        printf("cell %10d Device cell array allocated error %d %s memory: free %10.2f total %10.2f\n",i,err,cudaGetErrorString(err),
         		                                                mfree/1024/1024/1024,mtot/1024/1024/1024);
         puts("");
 
@@ -2026,8 +2078,10 @@ void InitGPUParticles()
     err = MemoryCopy(d_CellArray,h_CellArray,size*sizeof(Cell<Particle,dims> *),HOST_TO_DEVICE);
     if(err != 0)
         {
-         	printf("bGPU_WriteControlSystem err %d %s \n",err,getErrorString(err));
-        	exit(0);
+#ifdef __CUDACC__
+         	printf("bGPU_WriteControlSystem err %d %s \n",err,cudaGetErrorString(err));
+#endif
+         	exit(0);
         }
 
 
@@ -2166,7 +2220,9 @@ double checkGPUArray(double *a,double *d_a,char *name,char *where,int nt)
 	 err = MemoryCopy(t,d_a,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
 	 if(err != 0)
 	         {
-	          	printf("bCheckArray err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+	          	printf("bCheckArray err %d %s \n",err,cudaGetErrorString(err));
+#endif
 	        	exit(0);
 	         }
 
@@ -2193,7 +2249,9 @@ double checkGPUArray(double *a,double *d_a)
 	 err = MemoryCopy(t,d_a,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
 	 if(err != 0)
 	         {
-	          	printf("bCheckArray err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+	          	printf("bCheckArray err %d %s \n",err,cudaGetErrorString(err));
+#endif
 	        	exit(0);
 	         }
 
@@ -2216,10 +2274,14 @@ void StepAllCells()
 
     int err;
     err = getLastError();
-    printf("Err: %d %s\n", err, getErrorString(err));
+#ifdef __CUDACC__
+    printf("Err: %d %s\n", err, cudaGetErrorString(err));
+#endif
     DeviceSynchronize();
     err = getLastError();
-    printf("Err: %d %s\n", err, getErrorString(err));
+#ifdef __CUDACC__
+    printf("Err: %d %s\n", err, cudaGetErrorString(err));
+#endif
 }
 
 
@@ -4138,7 +4200,9 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
     	   err = MemoryCopy(t,d_Jx,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
     	   if(err != 0)
     	   {
-    	     printf("getWrongCurrentCellList err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+    	     printf("getWrongCurrentCellList err %d %s \n",err,cudaGetErrorString(err));
+#endif
     	  	 exit(0);
     	   }
 
@@ -5286,19 +5350,25 @@ void copyCellCurrentsToDevice(CellDouble *d_jx,CellDouble *d_jy,CellDouble *d_jz
  	err = MemoryCopy(d_jx,h_jx,sizeof(CellDouble),HOST_TO_DEVICE);
  	if(err != 0)
  	        {
- 	         	printf("1copyCellCurrentsToDevice err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+ 	         	printf("1copyCellCurrentsToDevice err %d %s \n",err,cudaGetErrorString(err));
+#endif
  	       	exit(0);
  	        }
  	err = MemoryCopy(d_jy,h_jy,sizeof(CellDouble),HOST_TO_DEVICE);
  	if(err != 0)
  	        {
- 	         	printf("2copyCellCurrentsToDevice err %d %s \n",err,getErrorString(err));
+#ifdef  __CUDACC__
+ 	         	printf("2copyCellCurrentsToDevice err %d %s \n",err,cudaGetErrorString(err));
+#endif
  	       	exit(0);
  	        }
  	err = MemoryCopy(d_jz,h_jz,sizeof(CellDouble),HOST_TO_DEVICE);
  	if(err != 0)
  	        {
- 	         	printf("3copyCellCurrentsToDevice err %d %s \n",err,getErrorString(err));
+#ifdef __CUDACC__
+ 	         	printf("3copyCellCurrentsToDevice err %d %s \n",err,cudaGetErrorString(err));
+#endif
  	       	exit(0);
  	        }
 
@@ -6144,7 +6214,9 @@ puts("Jy");
 		    DeviceSynchronize();
 		    int err2 = getLastError();
 		    char err_s[200];
-		    strcpy(err_s,getErrorString(err2));
+#ifdef __CUDACC__
+		    strcpy(err_s,cudaGetErrorString(err2));
+#endif
 
 
 			sprintf(name,"before_write_currents_%03d.dat",nt);
@@ -6205,7 +6277,7 @@ puts("Jy");
 #ifdef BALANCING_PRINTS
               before_MakeDepartureLists = getLastError();
               printf("before_MakeDepartureLists %d %s blockdim %d %d %d\n",before_MakeDepartureLists,
-            		  GetErrorString(before_MakeDepartureLists),dimGrid.x,dimGrid.y,dimGrid.z);
+            		  cudaGetErrorString(before_MakeDepartureLists),dimGrid.x,dimGrid.y,dimGrid.z);
 #endif
 
               int *stage,*stage1,*d_stage,*d_stage1;
@@ -6230,7 +6302,7 @@ puts("Jy");
               ThreadSynchronize();
 //              TEST_ERROR(after_MakeDepartureLists);
 #ifdef BALANCING_PRINTS
-              printf("after_MakeDepartureLists %d %s\n",after_MakeDepartureLists,GetErrorString(after_MakeDepartureLists));
+              printf("after_MakeDepartureLists %d %s\n",after_MakeDepartureLists,cudaGetErrorString(after_MakeDepartureLists));
 #endif
 
                                 DeviceSynchronize();
@@ -6252,7 +6324,7 @@ puts("Jy");
               //exit(0);
 #ifdef BALANCING_PRINTS
               before_ArrangeFlights = getLastError();
-              printf("before_ArrangeFlights %d %s\n",before_ArrangeFlights,GetErrorString(before_ArrangeFlights));
+              printf("before_ArrangeFlights %d %s\n",before_ArrangeFlights,cudaGetErrorString(before_ArrangeFlights));
 #endif
 
 
@@ -6270,7 +6342,7 @@ puts("Jy");
               ThreadSynchronize();
 //              TEST_ERROR(after_MakeDepartureLists);
 #ifdef BALANCING_PRINTS
-              printf("after_ArrangeFlights %d %s\n",after_ArrangeFlights,GetErrorString(after_ArrangeFlights));
+              printf("after_ArrangeFlights %d %s\n",after_ArrangeFlights,cudaGetErrorString(after_ArrangeFlights));
                                 DeviceSynchronize();
 #endif
 
@@ -6671,7 +6743,7 @@ int checkParticleAttributes(int nt)
 #endif
     if(err != 0)
     {
-    	printf("MemoryCopy before attributes error %d %s\n",err,GetErrorString(err));
+    	printf("MemoryCopy before attributes error %d %s\n",err,cudaGetErrorString(err));
     	exit(0);
     }
 
