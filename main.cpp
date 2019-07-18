@@ -42,9 +42,9 @@ int main(int argc,char*argv[])
 
 
 
-   int err = SetDevice(0);
+   //int err = SetDevice(0);
    
-      printf("err %d \n",err);
+     // printf("err %d \n",err);
 //   int nx0 = 100,ny0 = 4;
 //   double hx = 1.1424/nx0,hy = 0.2/ny;
 //

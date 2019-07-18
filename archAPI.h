@@ -12,10 +12,10 @@
 
 #include<string.h>
 
-#define HOST_TO_DEVICE   -131313
-#define HOST_TO_HOST     -131314
-#define DEVICE_TO_HOST   -131315
-#define DEVICE_TO_DEVICE -131316
+#define HOST_TO_DEVICE   cudaHostToDevice
+#define HOST_TO_HOST     cudaHostToHost
+#define DEVICE_TO_HOST   cudaDeviceToHost
+#define DEVICE_TO_DEVICE cudaDeviceToDevice
 
 //#define DETAILED_CURRENTS_WRITE
 //#define OMP_DETAILED_OUTPUT
@@ -153,60 +153,44 @@ typedef struct {
 //public:
 //	cudaAPI(){}
 
- const char *getErrorString(int err)
-{
-#ifdef __CUDACC__
-	return cudaGetErrorString((cudaError_t)err);
-#else
-	return "";
-#endif
-}
+// const char *getErrorString(int err)
+//{
+//#ifdef __CUDACC__
+//	return cudaGetErrorString((cudaError_t)err);
+//#else
+//	return "";
+//#endif
+//}
 
-int SetDevice(int n)
-{
-#ifdef __CUDACC__
-	return cudaSetDevice(n);
-#endif
-}
-
-#ifdef __CUDACC__
-__device__
-#endif
-void AsyncCopy(double *dst,double *src,int n,int size)
-{
-	int j;
-#ifdef __CUDACC__
-	j = n;
-	if(j < size)
-#else
-	for(j = 0;j < size;j++)
-#endif
-	{
-	   dst[j] = src[j];
-	}
-
-}
-
- int MemoryCopy(void* dst,void *src,size_t size,int dir)
-{
-	int err = 0;
-
-#ifdef __CUDACC__
-	cudaMemcpyKind cuda_dir;
-
-	if(dir == HOST_TO_DEVICE) cuda_dir = cudaMemcpyHostToDevice;
-	if(dir == HOST_TO_HOST) cuda_dir = cudaMemcpyHostToHost;
-	if(dir == DEVICE_TO_HOST) cuda_dir = cudaMemcpyDeviceToHost;
-	if(dir == DEVICE_TO_DEVICE) cuda_dir = cudaMemcpyDeviceToDevice;
+//int SetDevice(int n)
+//{
+//#ifdef __CUDACC__
+//	return cudaSetDevice(n);
+//#endif
+//}
 
 
 
-	return err = (int)cudaMemcpy(dst,src,size,cuda_dir);
-#else
-	memcpy(dst,src,size);
-#endif
-	return err;
-}
+// int MemoryCopy(void* dst,void *src,size_t size,int dir)
+//{
+//	int err = 0;
+//
+//#ifdef __CUDACC__
+//	cudaMemcpyKind cuda_dir;
+//
+//	if(dir == HOST_TO_DEVICE) cuda_dir = cudaMemcpyHostToDevice;
+//	if(dir == HOST_TO_HOST) cuda_dir = cudaMemcpyHostToHost;
+//	if(dir == DEVICE_TO_HOST) cuda_dir = cudaMemcpyDeviceToHost;
+//	if(dir == DEVICE_TO_DEVICE) cuda_dir = cudaMemcpyDeviceToDevice;
+//
+//
+//
+//	return err = (int)cudaMemcpy(dst,src,size,cuda_dir);
+//#else
+//	memcpy(dst,src,size);
+//#endif
+//	return err;
+//}
 
  int MemoryAllocate(void** dst,size_t size)
 {

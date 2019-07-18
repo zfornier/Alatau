@@ -686,6 +686,24 @@ __device__ void GPU_GetFlownBeamNumber_SingleNode(Cell<Particle,dims>  **cells,
 		MultiThreadAdd(&(params->flown_beam_particles),(*c).beam_boundary_counter);
 }
 
+#ifdef __CUDACC__
+__device__
+#endif
+void AsyncCopy(double *dst,double *src,int n,int size)
+{
+	int j;
+#ifdef __CUDACC__
+	j = n;
+	if(j < size)
+#else
+	for(j = 0;j < size;j++)
+#endif
+	{
+	   dst[j] = src[j];
+	}
+
+}
+
 template <template <class Particle,int dims> class Cell,int dims>
 __device__ void GPU_StepAllCells_SingleNode(Cell<Particle,dims>  **cells,
 		KernelParams *params,
