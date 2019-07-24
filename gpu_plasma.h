@@ -4914,7 +4914,9 @@ void AssignCellsToArraysGPU()
     params.d_Hy = d_Hy;
 	params.d_Hz = d_Hz;
 	//		static int first  = 1;
-    MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+#ifdef __CUDACC__
+    cudaMemcpy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+#endif
 
 	Kernel_Launcher(d_CellArray,d_params,mesh.x,mesh.y,mesh.z(),
 			CellExtent,CellExtent,CellExtent,16000,h_GPU_SetFieldsToCells_SingleNode,
@@ -6211,9 +6213,9 @@ puts("Jy");
 //		    write_field_component(nt,d_Jx,"afterStepAllCells","Jx",mesh.size2());
 
 		    DeviceSynchronize();
-
-		    MemoryCopy(&params,d_params,sizeof(KernelParams),DEVICE_TO_HOST);
-
+#ifdef __CUDACC__
+		    memcpy(&params,d_params,sizeof(KernelParams),DEVICE_TO_HOST);
+#endif
 		    flown_beam_particles = params.flown_beam_particles;
 
 //            GPU_StepAllCells<<<dimGrid, dimBlock,16000>>>(d_CellArray/*,d_jx,d_jy,d_jz*/,
@@ -6249,7 +6251,9 @@ puts("Jy");
 
 		   	params.d_Rho = d_Rho;
 		    	//		static int first  = 1;
+#ifdef __CUDACC__
 	    MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+#endif
 
 //	    write_field_component(nt,d_Jx,"bWrite","Jx",mesh.size2());
     	Kernel_Launcher(d_CellArray,d_params,mesh.x+2,mesh.y+2,mesh.dimz2(),
@@ -6272,15 +6276,17 @@ puts("Jy");
 #endif
 // 						write_field_component(nt,d_Jx,"bSUM","Jx",mesh.size2());
 
- 						MemoryCopy(Jx,d_Jx,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
- 						MemoryCopy(Jy,d_Jy,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
- 						MemoryCopy(Jz,d_Jz,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
-
+#ifdef __CUDACC__
+ 						memcpy(Jx,d_Jx,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+ 						memcpy(Jy,d_Jy,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+ 						memcpy(Jz,d_Jz,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+#endif
  						sumMPI(mesh.size2(),Jx,Jy,Jz);
-
- 						MemoryCopy(d_Jx,Jx,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
- 						MemoryCopy(d_Jy,Jy,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
- 						MemoryCopy(d_Jz,Jz,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
+#ifdef __CUDACC__
+ 						memcpy(d_Jx,Jx,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
+ 						memcpy(d_Jy,Jy,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
+ 						memcpy(d_Jz,Jz,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
+#endif
 
  						write_field_component(nt,d_Jx,"aSUM","Jx",mesh.size2());
  						write_field_component(nt,d_Ex,"aSUM","Ex",mesh.size2());
@@ -6308,8 +6314,10 @@ puts("Jy");
 
           	  params.nt = nt;
           	  params.d_stage = d_stage;
-          	  MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
 
+#ifdef __CUDACC__
+          	  memcpy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+#endif
           	  Kernel_Launcher(d_CellArray,d_params,mesh.x+2,mesh.y+2,mesh.dimz2(),
           	                1,1,1,16000,h_GPU_MakeDepartureLists_SingleNode,
           	                "MakeDepartureLists");
@@ -6324,7 +6332,9 @@ puts("Jy");
 #endif
 
                                 DeviceSynchronize();
-              err = MemoryCopy(stage,d_stage,sizeof(int)*mesh.size2(),DEVICE_TO_HOST);
+#ifdef __CUDACC__
+              err = memcpy(stage,d_stage,sizeof(int)*mesh.size2(),DEVICE_TO_HOST);
+#endif
               if(err != 0)
               {
             	  puts("copy error");
@@ -6348,7 +6358,10 @@ puts("Jy");
 
               MemorySet(d_stage1,0,sizeof(int)*mesh.size2());
           	  params.d_stage = d_stage1;
-          	  MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+
+#ifdef __CUDACC__
+          	  memcpy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+#endif
 
           	  Kernel_Launcher(d_CellArray,d_params,mesh.x+2,mesh.y+2,mesh.dimz2(),
           	                1,1,1,16000,h_ArrangeFlights,
@@ -6364,7 +6377,9 @@ puts("Jy");
                                 DeviceSynchronize();
 #endif
 
-              err = MemoryCopy(stage1,d_stage1,sizeof(int)*mesh.size2(),DEVICE_TO_HOST);
+#ifdef __CUDACC__
+              err = memcpy(stage1,d_stage1,sizeof(int)*mesh.size2(),DEVICE_TO_HOST);
+#endif
                                               if(err != 0)
                                               {
                                             	  puts("copy error");
