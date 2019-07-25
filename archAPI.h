@@ -12,11 +12,6 @@
 
 #include<string.h>
 
-#define HOST_TO_DEVICE   cudaHostToDevice
-#define HOST_TO_HOST     cudaHostToHost
-#define DEVICE_TO_HOST   cudaDeviceToHost
-#define DEVICE_TO_DEVICE cudaDeviceToDevice
-
 //#define DETAILED_CURRENTS_WRITE
 //#define OMP_DETAILED_OUTPUT
 //#define OMP_OUTPUT
@@ -192,59 +187,59 @@ typedef struct {
 //	return err;
 //}
 
- int MemoryAllocate(void** dst,size_t size)
-{
-#ifdef __CUDACC__
-	cudaMalloc(dst,size);
-#else
-	*dst = malloc(size);
-#endif
-}
-
- int GetDeviceMemory(size_t *m_free,size_t *m_total)
-{
-#ifdef __CUDACC__
-	return cudaMemGetInfo(m_free,m_total);
-#else
-	*m_free = 0;
-	*m_total = 0;
-	return 0;
-#endif
-}
-
- int MemorySet(void *s, int c, size_t n)
-{
-#ifdef __CUDACC__
-	cudaMemset(s,c,n);
-#else
-	memset(s,c,n);
-
-#endif
-}
-
-
-
- int DeviceSynchronize()
-{
-#ifdef __CUDACC__
-	return cudaDeviceSynchronize();
-#endif
-}
-
- int ThreadSynchronize()
-{
-#ifdef __CUDACC__
-	return cudaThreadSynchronize();
-#endif
-}
-
- int getLastError()
-{
-#ifdef __CUDACC__
-	return cudaGetLastError();
-#endif
-	return 0;
-}
+// int MemoryAllocate(void** dst,size_t size)
+//{
+//#ifdef __CUDACC__
+//	cudaMalloc(dst,size);
+//#else
+//	*dst = malloc(size);
+//#endif
+//}
+//
+// int GetDeviceMemory(size_t *m_free,size_t *m_total)
+//{
+//#ifdef __CUDACC__
+//	return cudaMemGetInfo(m_free,m_total);
+//#else
+//	*m_free = 0;
+//	*m_total = 0;
+//	return 0;
+//#endif
+//}
+//
+// int MemorySet(void *s, int c, size_t n)
+//{
+//#ifdef __CUDACC__
+//	cudaMemset(s,c,n);
+//#else
+//	memset(s,c,n);
+//
+//#endif
+//}
+//
+//
+//
+// int DeviceSynchronize()
+//{
+//#ifdef __CUDACC__
+//	return cudaDeviceSynchronize();
+//#endif
+//}
+//
+// int ThreadSynchronize()
+//{
+//#ifdef __CUDACC__
+//	return cudaThreadSynchronize();
+//#endif
+//}
+//
+// int getLastError()
+//{
+//#ifdef __CUDACC__
+//	return cudaGetLastError();
+//#endif
+//	return 0;
+//}
 
 
 //virtual ~cudaAPI(){}

@@ -30,7 +30,10 @@ double checkPointArray(double* a, double* dbg_a,double tol,
 	{
 		dub_a = (double *)malloc(size*sizeof(double));
 
-		MemoryCopy(dub_a,dbg_a,size*sizeof(double),DEVICE_TO_HOST);
+#ifdef __CUDACC__
+		cudaMemcpy(dub_a,dbg_a,size*sizeof(double),DEVICE_TO_HOST);
+#endif
+
 	}
 	else{
 		dub_a = dbg_a;
@@ -198,7 +201,11 @@ double CheckGPUArraySilent	(double* a, double* d_a)
 	    	 f = 0;
 	    }
 
-	    MemoryCopy(t,d_a,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+
+#ifdef __CUDACC__
+	    cudaMemcpy(t,d_a,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+#endif
+
 //	    cudaMemcpy(t,d_a,sizeof(double)*mesh.size2(),cudaMemcpyDeviceToHost);
 	    err = getLastError();
 	    if(err != 0)
@@ -224,9 +231,10 @@ double printGPUArray	(double* d_a,int num,int nt, char *name)
 	    	 t = (double *)malloc(sizeof(double)*mesh.size2());
 	    	 f = 0;
 	    }
-
-	    MemoryCopy(t,d_a,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
-//	    cudaMemcpy(t,d_a,sizeof(double)*mesh.size2(),cudaMemcpyDeviceToHost);
+#ifdef __CUDACC__
+	    cudaMemcpy(t,d_a,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+#endif
+	    //	    cudaMemcpy(t,d_a,sizeof(double)*mesh.size2(),cudaMemcpyDeviceToHost);
 	    err = getLastError();
 	    if(err != 0)
 	            {

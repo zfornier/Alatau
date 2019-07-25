@@ -375,22 +375,24 @@ int AllocateBinaryParticleArraysOneSortFloat(
 		  for(i = 0;i < SORTS;i++)
 		  {
 			  tot = (*pfag)[i].total;
-
-			  MemoryAllocate((void **)&( (*host_copy_d_pfag)[i].dbg_px),tot*sizeof(float));
-			  MemoryAllocate((void **)&( (*host_copy_d_pfag)[i].dbg_py),tot*sizeof(float));
-			  MemoryAllocate((void **)&( (*host_copy_d_pfag)[i].dbg_pz),tot*sizeof(float));
-			  MemoryAllocate((void **)&( (*host_copy_d_pfag)[i].dbg_x),tot*sizeof(float));
-			  MemoryAllocate((void **)&( (*host_copy_d_pfag)[i].dbg_y),tot*sizeof(float));
-			  MemoryAllocate((void **)&( (*host_copy_d_pfag)[i].dbg_z),tot*sizeof(float));
-
+#ifdef __CUDACC__
+			  cudaMalloc((void **)&( (*host_copy_d_pfag)[i].dbg_px),tot*sizeof(float));
+			  cudaMalloc((void **)&( (*host_copy_d_pfag)[i].dbg_py),tot*sizeof(float));
+			  cudaMalloc((void **)&( (*host_copy_d_pfag)[i].dbg_pz),tot*sizeof(float));
+			  cudaMalloc((void **)&( (*host_copy_d_pfag)[i].dbg_x),tot*sizeof(float));
+			  cudaMalloc((void **)&( (*host_copy_d_pfag)[i].dbg_y),tot*sizeof(float));
+			  cudaMalloc((void **)&( (*host_copy_d_pfag)[i].dbg_z),tot*sizeof(float));
+#endif
 			  (*host_copy_d_pfag)[i].total = (*pfag)[i].total;
 
 			  (*host_copy_d_pfag)[i].m = (*pfag)[i].m;
 			  (*host_copy_d_pfag)[i].q_m = (*pfag)[i].q_m;
 		  }
-		  MemoryAllocate((void **)d_pfag,sizeof(ParticleFloatArraysGroup));
-		  int err = MemoryCopy(*d_pfag,host_copy_d_pfag,sizeof(ParticleFloatArraysGroup),HOST_TO_DEVICE);
+#ifdef __CUDACC__
+		  cudaMalloc((void **)d_pfag,sizeof(ParticleFloatArraysGroup));
 
+		  int err = cudaMemcpy(*d_pfag,host_copy_d_pfag,sizeof(ParticleFloatArraysGroup),HOST_TO_DEVICE);
+#endif
 		  return 0;
 	  }
 
@@ -403,13 +405,14 @@ int AllocateBinaryParticleArraysOneSortFloat(
 		  for(i = 0;i < SORTS;i++)
 		  {
 			  tot = pfag[i].total;
-
-			  MemoryCopy(pfag[i].dbg_px,host_copy_d_pfag[i].dbg_px,tot*sizeof(float),DEVICE_TO_HOST);
-			  MemoryCopy(pfag[i].dbg_py,host_copy_d_pfag[i].dbg_py,tot*sizeof(float),DEVICE_TO_HOST);
-			  MemoryCopy(pfag[i].dbg_pz,host_copy_d_pfag[i].dbg_pz,tot*sizeof(float),DEVICE_TO_HOST);
-			  MemoryCopy(pfag[i].dbg_x,host_copy_d_pfag[i].dbg_x,tot*sizeof(float),DEVICE_TO_HOST);
-			  MemoryCopy(pfag[i].dbg_y,host_copy_d_pfag[i].dbg_y,tot*sizeof(float),DEVICE_TO_HOST);
-			  MemoryCopy(pfag[i].dbg_z,host_copy_d_pfag[i].dbg_z,tot*sizeof(float),DEVICE_TO_HOST);
+#ifdef __CUDACC__
+			  cudaMemcpy(pfag[i].dbg_px,host_copy_d_pfag[i].dbg_px,tot*sizeof(float),DEVICE_TO_HOST);
+			  cudaMemcpy(pfag[i].dbg_py,host_copy_d_pfag[i].dbg_py,tot*sizeof(float),DEVICE_TO_HOST);
+			  cudaMemcpy(pfag[i].dbg_pz,host_copy_d_pfag[i].dbg_pz,tot*sizeof(float),DEVICE_TO_HOST);
+			  cudaMemcpy(pfag[i].dbg_x,host_copy_d_pfag[i].dbg_x,tot*sizeof(float),DEVICE_TO_HOST);
+			  cudaMemcpy(pfag[i].dbg_y,host_copy_d_pfag[i].dbg_y,tot*sizeof(float),DEVICE_TO_HOST);
+			  cudaMemcpy(pfag[i].dbg_z,host_copy_d_pfag[i].dbg_z,tot*sizeof(float),DEVICE_TO_HOST);
+#endif
 		  }
 
 		  return 0;
