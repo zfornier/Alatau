@@ -35,8 +35,8 @@
 //#include <unistd.h>
 //#include <stdio.h>
 #include <errno.h>
-
-
+#include "read_particles.h"
+#include "archAPI.h"
 
 
 #include <time.h>
@@ -61,7 +61,7 @@
 #include <sys/sysinfo.h>
 #include <sys/time.h>
 
-#include "read_particles.c"
+#include "read_particles.h"
 
 #include "init.h"
 #include "diagnose.h"
@@ -1806,7 +1806,7 @@ void SetAllCurrentsToZero(
 
 int CopySingleNodeFunctionPointers()
 {
-	cudaMalloc((void **)&d_params,sizeof(KernelParams));
+	MemoryAllocate((void **)&d_params,sizeof(KernelParams));
 
 	COPY_FUNCTION_POINTER( &h_GPU_SetAllCurrentsToZero_SingleNode,d_GPU_SetAllCurrentsToZero_SingleNode);
 	COPY_FUNCTION_POINTER( &h_GPU_getCellEnergy_SingleNode,d_GPU_getCellEnergy_SingleNode);
@@ -1834,27 +1834,27 @@ int CopySingleNodeFunctionPointers()
 void InitGPUFields()
 {
 	CopySingleNodeFunctionPointers();
-#ifdef __CUDACC__
-	cudaMalloc((void**)&d_Ex,sizeof(double)*mesh.size2());
-	cudaMalloc((void**)&d_Ey,sizeof(double)*mesh.size2());
-	cudaMalloc((void**)&d_Ez,sizeof(double)*mesh.size2());
 
-	cudaMalloc((void**)&d_Hx,sizeof(double)*mesh.size2());
-	cudaMalloc((void**)&d_Hy,sizeof(double)*mesh.size2());
-	cudaMalloc((void**)&d_Hz,sizeof(double)*mesh.size2());
+	MemoryAllocate((void**)&d_Ex,sizeof(double)*mesh.size2());
+	MemoryAllocate((void**)&d_Ey,sizeof(double)*mesh.size2());
+	MemoryAllocate((void**)&d_Ez,sizeof(double)*mesh.size2());
 
-	cudaMalloc((void**)&d_Jx,sizeof(double)*mesh.size2());
-	cudaMalloc((void**)&d_Jy,sizeof(double)*mesh.size2());
-	cudaMalloc((void**)&d_Jz,sizeof(double)*mesh.size2());
+	MemoryAllocate((void**)&d_Hx,sizeof(double)*mesh.size2());
+	MemoryAllocate((void**)&d_Hy,sizeof(double)*mesh.size2());
+	MemoryAllocate((void**)&d_Hz,sizeof(double)*mesh.size2());
 
-	cudaMalloc((void**)&d_npJx,sizeof(double)*mesh.size2());
-	cudaMalloc((void**)&d_npJy,sizeof(double)*mesh.size2());
-	cudaMalloc((void**)&d_npJz,sizeof(double)*mesh.size2());
+	MemoryAllocate((void**)&d_Jx,sizeof(double)*mesh.size2());
+	MemoryAllocate((void**)&d_Jy,sizeof(double)*mesh.size2());
+	MemoryAllocate((void**)&d_Jz,sizeof(double)*mesh.size2());
 
-	cudaMalloc((void**)&d_Qx,sizeof(double)*mesh.size2());
-	cudaMalloc((void**)&d_Qy,sizeof(double)*mesh.size2());
-	cudaMalloc((void**)&d_Qz,sizeof(double)*mesh.size2());
-#endif
+	MemoryAllocate((void**)&d_npJx,sizeof(double)*mesh.size2());
+	MemoryAllocate((void**)&d_npJy,sizeof(double)*mesh.size2());
+	MemoryAllocate((void**)&d_npJz,sizeof(double)*mesh.size2());
+
+	MemoryAllocate((void**)&d_Qx,sizeof(double)*mesh.size2());
+	MemoryAllocate((void**)&d_Qy,sizeof(double)*mesh.size2());
+	MemoryAllocate((void**)&d_Qz,sizeof(double)*mesh.size2());
+
     copyFieldsToGPU();
 }
 
@@ -1862,10 +1862,7 @@ void copyFieldsToGPU()
 {
 	int err;
 
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_Ex,Ex,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
-
+    err = MemoryCopy(d_Ex,Ex,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
     {
 #ifdef __CUDACC__
@@ -1873,11 +1870,7 @@ void copyFieldsToGPU()
 #endif
     	exit(0);
     }
-
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_Ey,Ey,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
-
+    err = MemoryCopy(d_Ey,Ey,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
     {
 #ifdef __CUDACC__
@@ -1885,9 +1878,8 @@ void copyFieldsToGPU()
 #endif
     	exit(0);
     }
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_Ez,Ez,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
+
+    err = MemoryCopy(d_Ez,Ez,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
 #ifdef __CUDACC__
@@ -1895,9 +1887,8 @@ void copyFieldsToGPU()
 #endif
         	exit(0);
         }
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_Hx,Hx,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
+
+    err = MemoryCopy(d_Hx,Hx,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
 #ifdef __CUDACC__
@@ -1905,9 +1896,7 @@ void copyFieldsToGPU()
 #endif
         	exit(0);
         }
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_Hy,Hy,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
+    err = MemoryCopy(d_Hy,Hy,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
 #ifdef __CUDACC__
@@ -1915,9 +1904,7 @@ void copyFieldsToGPU()
 #endif
          	exit(0);
         }
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_Hz,Hz,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
+    err = MemoryCopy(d_Hz,Hz,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
 #ifdef __CUDACC__
@@ -1925,9 +1912,8 @@ void copyFieldsToGPU()
 #endif
          	exit(0);
         }
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_Jx,Jx,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
+
+    err = MemoryCopy(d_Jx,Jx,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
 #ifdef __CUDACC__
@@ -1935,9 +1921,7 @@ void copyFieldsToGPU()
 #endif
         	exit(0);
         }
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_Jy,Jy,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
+    err = MemoryCopy(d_Jy,Jy,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
 #ifdef __CUDACC__
@@ -1945,9 +1929,8 @@ void copyFieldsToGPU()
 #endif
         	exit(0);
         }
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_Jz,Jz,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
+
+    err = MemoryCopy(d_Jz,Jz,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
 #ifdef __CUDACC__
@@ -1955,10 +1938,8 @@ void copyFieldsToGPU()
 #endif
          	exit(0);
         }
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_npJx,npJx,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
 
+    err = MemoryCopy(d_npJx,npJx,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
 #ifdef __CUDACC__
@@ -1966,9 +1947,8 @@ void copyFieldsToGPU()
 #endif
          	exit(0);
         }
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_npJy,npJy,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
+
+    err = MemoryCopy(d_npJy,npJy,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
 #ifdef __CUDACC__
@@ -1976,10 +1956,8 @@ void copyFieldsToGPU()
 #endif
         	exit(0);
         }
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_npJz,npJz,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
 
+    err = MemoryCopy(d_npJz,npJz,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
 #ifdef __CUDACC__
@@ -1987,9 +1965,8 @@ void copyFieldsToGPU()
 #endif
          	exit(0);
         }
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_Qx,Qx,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
+
+    err = MemoryCopy(d_Qx,Qx,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
 #ifdef __CUDACC__
@@ -1997,9 +1974,8 @@ void copyFieldsToGPU()
 #endif
          	exit(0);
         }
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_Qy,Qy,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
+
+    err = MemoryCopy(d_Qy,Qy,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
 #ifdef __CUDACC__
@@ -2007,9 +1983,8 @@ void copyFieldsToGPU()
 #endif
          	exit(0);
         }
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_Qz,Qz,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
+
+    err = MemoryCopy(d_Qz,Qz,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
     if(err != 0)
         {
 #ifdef __CUDACC__
@@ -2042,9 +2017,8 @@ void InitGPUParticles()
 	n = new Cell<Particle,dims>;
 
     h_CellArray = (Cell<Particle,dims> **)malloc(size*sizeof(Cell<Particle,dims> *));
-#ifdef __CUDACC__
-    int err = (int)cudaMalloc((void**)&d_CellArray,size*sizeof(Cell<Particle,dims> *));
-#endif
+    int err = (int)MemoryAllocate((void**)&d_CellArray,size*sizeof(Cell<Particle,dims> *));
+
 
     printf("%s : size = %d\n", __FILE__, size);
     for(int i = 0;i < size;i++)
@@ -2099,9 +2073,7 @@ void InitGPUParticles()
 //    	printf("E i %10d AllCells %p \n",i,AllCells);
 
         h_CellArray[i] = d_c;
-#ifdef __CUDACC__
-        cudaMemcpy(h_ctrl,d_c,sizeof(Cell<Particle,dims>),DEVICE_TO_HOST);
-#endif
+        MemoryCopy(h_ctrl,d_c,sizeof(Cell<Particle,dims>),DEVICE_TO_HOST);
 //    	printf("F i %10d AllCells %p \n",i,AllCells);
 
 #ifdef InitGPUParticles_PRINTS
@@ -2120,9 +2092,8 @@ void InitGPUParticles()
 #endif
     }
 
-#ifdef __CUDACC__
-    err = cudaMemcpy(d_CellArray,h_CellArray,size*sizeof(Cell<Particle,dims> *),cudaMemcpyHostToDevice);
-#endif
+
+    err = MemoryCopy(d_CellArray,h_CellArray,size*sizeof(Cell<Particle,dims> *),HOST_TO_DEVICE);
     if(err != 0)
         {
 #ifdef __CUDACC__
@@ -2264,9 +2235,7 @@ double checkGPUArray(double *a,double *d_a,char *name,char *where,int nt)
 		 f1 = 0;
 	 }
 	 int err;
-#ifdef __CUDACC__
-	 err = cudaMemcpy(t,d_a,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
-#endif
+	 err = MemoryCopy(t,d_a,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
 	 if(err != 0)
 	         {
 #ifdef __CUDACC__
@@ -2295,9 +2264,7 @@ double checkGPUArray(double *a,double *d_a)
 		 f = 0;
 	 }
 	 int err;
-#ifdef __CUDACC__
-	 err = cudaMemcpy(t,d_a,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
-#endif
+	 err = MemoryCopy(t,d_a,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
 	 if(err != 0)
 	         {
 #ifdef __CUDACC__
@@ -2322,13 +2289,15 @@ void StepAllCells()
 {
 //	dim3 dimGrid(mesh.x+2,mesh.y+2,mesh.dimz2()),
 //			dimBlock(MAX_particles_per_cell/2,1,1);
-#ifdef __CUDACC__
-    int err;
-    err = cudaGetLastError();
 
+    int err;
+    err = getLastError();
+#ifdef __CUDACC__
     printf("Err: %d %s\n", err, cudaGetErrorString(err));
-    cudaDeviceSynchronize();
-    err = cudaGetLastError();
+#endif
+    DeviceSynchronize();
+    err = getLastError();
+#ifdef __CUDACC__
     printf("Err: %d %s\n", err, cudaGetErrorString(err));
 #endif
 }
@@ -2369,9 +2338,9 @@ void virtual emeGPUIterate(int i_s,int i_f,int l_s,int l_f,int k_s,int k_f,
 	params.blockDim_y = l_f-l_s+1;
 	params.blockDim_z = k_f-k_s+1;
 
-#ifdef __CUDACC__
-	cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+
+	MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+
     Kernel_Launcher(d_CellArray,d_params,
     		             i_f-i_s+1,1,1,
     		             1,l_f-l_s+1,k_f-k_s+1,
@@ -2384,10 +2353,8 @@ void virtual emeGPUIterate(int i_s,int i_f,int l_s,int l_f,int k_s,int k_f,
 //    					    	  		J,c1,c2,tau,
 //    					    	  		dx1,dy1,dz1,dx2,dy2,dz2
 //    		);
-#ifdef __CUDACC__
-    err = cudaGetLastError();
-    cudaThreadSynchronize();
-#endif
+    err = getLastError();
+    ThreadSynchronize();
 //    TEST_ERROR(err);
 }
 
@@ -2822,22 +2789,21 @@ virtual void emh2(double *locHx,double *locHy,double *locHz,
 
 
 //			first = 0;
-#ifdef __CUDACC__
-		cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+
+		MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
 
 	    Kernel_Launcher(d_CellArray,d_params,mesh.x+2,mesh.y+2,mesh.dimz2(),1,1,1,
 	                         16000,h_GPU_getCellEnergy_SingleNode,
 	                         "getCellEnergy");
 
 //		GPU_getCellEnergy<<<dimGrid, dimBlockOne,16000>>>(d_CellArray,d_ee,d_Ex,d_Ey,d_Ez);
-#ifdef __CUDACC__
-	    err = cudaGetLastError();
-	    cudaThreadSynchronize();
+
+	    err = getLastError();
+	    ThreadSynchronize();
 //	    TEST_ERROR(err);
-//#ifdef __CUDACC__
-        cudaMemcpy(&params,d_params,sizeof(KernelParams),DEVICE_TO_HOST);
-#endif
+
+        MemoryCopy(&params,d_params,sizeof(KernelParams),DEVICE_TO_HOST);
+
 
         return params.d_ee;
 
@@ -2857,33 +2823,32 @@ virtual void emh2(double *locHx,double *locHy,double *locHz,
 		if(first == 1)
 		{
 			first = 0;
-#ifdef __CUDACC__
-			cudaMalloc((void **)&h_Ex,sizeof(double)*mesh.size2());
-			cudaMalloc((void **)&h_Ey,sizeof(double)*mesh.size2());
-			cudaMalloc((void **)&h_Ez,sizeof(double)*mesh.size2());
 
-			cudaMalloc((void **)&h_Bx,sizeof(double)*mesh.size2());
-			cudaMalloc((void **)&h_By,sizeof(double)*mesh.size2());
-			cudaMalloc((void **)&h_Bz,sizeof(double)*mesh.size2());
+			MemoryAllocate((void **)&h_Ex,sizeof(double)*mesh.size2());
+			MemoryAllocate((void **)&h_Ey,sizeof(double)*mesh.size2());
+			MemoryAllocate((void **)&h_Ez,sizeof(double)*mesh.size2());
 
-			cudaMalloc((void **)&h_Jx,sizeof(double)*mesh.size2());
-			cudaMalloc((void **)&h_Jy,sizeof(double)*mesh.size2());
-			cudaMalloc((void **)&h_Jz,sizeof(double)*mesh.size2());
-#endif
+			MemoryAllocate((void **)&h_Bx,sizeof(double)*mesh.size2());
+			MemoryAllocate((void **)&h_By,sizeof(double)*mesh.size2());
+			MemoryAllocate((void **)&h_Bz,sizeof(double)*mesh.size2());
+
+			MemoryAllocate((void **)&h_Jx,sizeof(double)*mesh.size2());
+			MemoryAllocate((void **)&h_Jy,sizeof(double)*mesh.size2());
+			MemoryAllocate((void **)&h_Jz,sizeof(double)*mesh.size2());
 		}
-#ifdef __CUDACC__
-		cudaMemcpy(h_Ex,d_Ex,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
-		cudaMemcpy(h_Ey,d_Ey,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
-		cudaMemcpy(h_Ez,d_Ez,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
 
-		cudaMemcpy(h_Bx,d_Hx,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
-		cudaMemcpy(h_By,d_Hy,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
-		cudaMemcpy(h_Bz,d_Hz,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+		MemoryCopy(h_Ex,d_Ex,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+		MemoryCopy(h_Ey,d_Ey,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+		MemoryCopy(h_Ez,d_Ez,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
 
-		cudaMemcpy(h_Jx,d_Jx,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
-		cudaMemcpy(h_Jy,d_Jy,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
-		cudaMemcpy(h_Jz,d_Jz,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
-#endif
+		MemoryCopy(h_Bx,d_Hx,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+		MemoryCopy(h_By,d_Hy,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+		MemoryCopy(h_Bz,d_Hz,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+
+		MemoryCopy(h_Jx,d_Jx,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+		MemoryCopy(h_Jy,d_Jy,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+		MemoryCopy(h_Jz,d_Jz,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+
 		 Cell<Particle,dims> c = (*AllCells)[0];
 		 double hx = c.get_hx(),hy = c.get_hy(),hz = c.get_hz();
 		 char fname[100];
@@ -2961,9 +2926,9 @@ virtual void emh2(double *locHx,double *locHy,double *locHz,
 		 params.component_total = component_total;
 		 params.sorts = sorts;
 		 params.d_part_diag = d_diagnostics;
-#ifdef __CUDACC__
-		 cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+
+		 MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+
 //		 GPU_Diagnose_SingleNode(d_CellArray,d_params,0,0,0, 0,0,0);
 //		 GPU_Diagnose_SingleNode(d_CellArray,d_params,70,0,0, 0,0,0);
 
@@ -2974,7 +2939,7 @@ virtual void emh2(double *locHx,double *locHy,double *locHz,
 //		//		    		PARTICLE_BLOCK_X_SIZE,1,1,16000,h_GPU_StepAllCells_SingleNode,
 //				            "Diagnose");
 //
-////		 cudaMemcpy(diagnose,d_diagnose,sizeof(float)*sorts*component_total*8,DEVICE_TO_HOST);
+////		 MemoryCopy(diagnose,d_diagnose,sizeof(float)*sorts*component_total*8,DEVICE_TO_HOST);
 //		 CopyParticleDiagnosticPointersFromDevice(diagnostics,
 //				 host_copy_d_diagnostics);
 
@@ -3965,9 +3930,9 @@ virtual void emh2(double *locHx,double *locHy,double *locHz,
    		params.dx2 = dx2;
    		params.dy2 = dy2;
    		params.dz2 = dz2;
-#ifdef __CUDACC__
-   		cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+
+   		MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+
    		Kernel_Launcher(d_CellArray,d_params,
    				   	    i_end+1,l_end+1,k_end+1,
    				   			    		1,1,1,
@@ -4037,9 +4002,7 @@ virtual void emh2(double *locHx,double *locHy,double *locHz,
 		   		params.k_s = 0;
 		   		params.B0  = B0;
 
-#ifdef __CUDACC__
-		   		cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+		   		MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
 
 		   	    Kernel_Launcher(d_CellArray,d_params,
 		   	    		        i_end+1,l_end+1,k_end,
@@ -4070,9 +4033,8 @@ virtual void emh2(double *locHx,double *locHy,double *locHz,
 		   		params.l_s = 0;
 		   		params.k_s = 0;
 
-#ifdef __CUDACC__
-		   		cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+		   		MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+
 		   	    Kernel_Launcher(d_CellArray,d_params,
 		   	    		        i_end+1,l_end+1,k_end+1,
 		   			    		1,1,1,
@@ -4117,9 +4079,9 @@ virtual void emh2(double *locHx,double *locHy,double *locHz,
 	    		params.k_s  = start2;
 	    		params.to   = 0;
 	    		params.from = N;
-#ifdef __CUDACC__
-	    		cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+
+	    		MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+
 	    		Kernel_Launcher(d_CellArray,d_params,
 	    				end1-start1+1,1,end2-start2+1,
 	    		    		             1,1,1,
@@ -4134,9 +4096,9 @@ virtual void emh2(double *locHx,double *locHy,double *locHz,
 
 	    	    params.to   = N+1;
 	    	    params.from = 1;
-#ifdef __CUDACC__
-	    		cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+
+	    		MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+
 	    		Kernel_Launcher(d_CellArray,d_params,
 	    				end1-start1+1,1,end2-start2+1,
 	    		    		             1,1,1,
@@ -4189,9 +4151,8 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
 		params.to   = N+1;
 		params.from = 1;
 
-#ifdef __CUDACC__
-		cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+		MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+
 		Kernel_Launcher(d_CellArray,d_params,
 				end1-start1+1,1,end2-start2+1,
 		    		             1,1,1,
@@ -4242,8 +4203,8 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
     	       	   {
     		           wrong_flag[n] = 0;
     	       	   }
-    	   cudaMalloc((void**)&d_wrong_flag,sizeof(int)*mesh.size2());
-    	   cudaMalloc((void**)&d_wrong_attributes,sizeof(double_pointer)*mesh.size2());
+    	   MemoryAllocate((void**)&d_wrong_flag,sizeof(int)*mesh.size2());
+    	   MemoryAllocate((void**)&d_wrong_attributes,sizeof(double_pointer)*mesh.size2());
 
     	   static double *t;
     	   static int first = 1;
@@ -4254,9 +4215,7 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
     	  	 first = 0;
     	   }
     	   int err;
-#ifdef __CUDACC__
-    	   err = cudaMemcpy(t,d_Jx,sizeof(double)*mesh.size2(),cudaMemcpyDeviceToHost);
-#endif
+    	   err = MemoryCopy(t,d_Jx,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
     	   if(err != 0)
     	   {
 #ifdef __CUDACC__
@@ -4287,13 +4246,13 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
     	          jx_wrong_points[num_cell++] = i;
     	       }
     	   }
-    	   cudaMalloc((void**)&(d_jx_wrong_points),jx_wrong_points_number*sizeof(int3));
-#ifdef __CUDACC__
-    	   cudaMemcpy(d_wrong_flag,wrong_flag,sizeof(int)*mesh.size2(),cudaMemcpyHostToDevice);
+    	   MemoryAllocate((void**)&(d_jx_wrong_points),jx_wrong_points_number*sizeof(int3));
 
-    	   cudaMemcpy(d_wrong_attributes,wrong_attributes,
-    			                              sizeof(double_pointer)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
+    	   MemoryCopy(d_wrong_flag,wrong_flag,sizeof(int)*mesh.size2(),HOST_TO_DEVICE);
+
+    	   MemoryCopy(d_wrong_attributes,wrong_attributes,
+    			                              sizeof(double_pointer)*mesh.size2(),HOST_TO_DEVICE);
+
 //           copy_pointers<<<mesh.size2(),1>>>(d_CellArray,d_wrong_flag,d_wrong_attributes);
            err = getLastError();
            ThreadSynchronize();
@@ -4395,9 +4354,8 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
 	      params.i_s  = 0;
 	      params.k_s  = 0;
 	      params.N    = mesh.x+2;
-#ifdef __CUDACC__
-	      cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+	      MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+
 	  	  Kernel_Launcher(d_CellArray,d_params,dimGridX.x,dimGridX.y,dimGridX.z,
 	  	                dimBlock.x,dimBlock.y,dimBlock.z,16000,h_CurrentPeriodic,
 	  	               "CurrentPeriodic");
@@ -4416,9 +4374,8 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
 	      params.i_s  = 0;
 	      params.k_s  = 0;
 	      params.N    = mesh.y+2;
-#ifdef __CUDACC__
-	      cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+	      MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+
 	  	  Kernel_Launcher(d_CellArray,d_params,dimGridY.x,dimGridY.y,dimGridY.z,
 	  	                dimBlock.x,dimBlock.y,dimBlock.z,16000,h_CurrentPeriodic,
 	  	               "CurrentPeriodic");
@@ -4436,9 +4393,8 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
 	     params.i_s  = 0;
 	     params.k_s  = 0;
 	     params.N    = mesh.dimz2();
-#ifdef __CUDACC__
-	     cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+	     MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+
 	     Kernel_Launcher(d_CellArray,d_params,dimGridZ.x,dimGridZ.y,dimGridZ.z,
 	                     dimBlock.x,dimBlock.y,dimBlock.z,16000,h_CurrentPeriodic,
 	                    "CurrentPeriodic");
@@ -4458,9 +4414,8 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
 	     params.i_s  = 0;
 	     params.k_s  = 0;
 	     params.N    = mesh.x+2;
-#ifdef __CUDACC__
-	     cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+	     MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+
 	     Kernel_Launcher(d_CellArray,d_params,dimGridX.x,dimGridX.y,dimGridX.z,
 	                     dimBlock.x,dimBlock.y,dimBlock.z,16000,h_CurrentPeriodic,
 	                     "CurrentPeriodic");
@@ -4478,9 +4433,8 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
 	     params.i_s  = 0;
 	     params.k_s  = 0;
 	     params.N    = mesh.y+2;
-#ifdef __CUDACC__
-	     cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+	     MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+
 	     Kernel_Launcher(d_CellArray,d_params,dimGridY.x,dimGridY.y,dimGridY.z,
 	                     dimBlock.x,dimBlock.y,dimBlock.z,16000,h_CurrentPeriodic,
 	                     "CurrentPeriodic");
@@ -4498,9 +4452,7 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
   	     params.i_s  = 0;
    	     params.k_s  = 0;
    	     params.N    = mesh.dimz2();
-#ifdef __CUDACC__
-   	     cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+   	     MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
    	     Kernel_Launcher(d_CellArray,d_params,dimGridZ.x,dimGridZ.y,dimGridZ.z,
 	     	                     dimBlock.x,dimBlock.y,dimBlock.z,16000,h_CurrentPeriodic,
 	     	                     "CurrentPeriodic");
@@ -4519,9 +4471,7 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
    	     params.i_s  = 0;
    	     params.k_s  = 0;
    	     params.N    = mesh.x+2;
-#ifdef __CUDACC__
-   	     cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+   	     MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
   	     Kernel_Launcher(d_CellArray,d_params,dimGridX.x,dimGridX.y,dimGridX.z,
   	                     dimBlock.x,dimBlock.y,dimBlock.z,16000,h_CurrentPeriodic,
    	                     "CurrentPeriodic");
@@ -4539,9 +4489,7 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
    	     params.i_s  = 0;
    	     params.k_s  = 0;
    	     params.N    = mesh.y+2;
-#ifdef __CUDACC__
-   	     cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+   	     MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
   	     Kernel_Launcher(d_CellArray,d_params,dimGridY.x,dimGridY.y,dimGridY.z,
   	                     dimBlock.x,dimBlock.y,dimBlock.z,16000,h_CurrentPeriodic,
    	                     "CurrentPeriodic");
@@ -4560,9 +4508,7 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
    	     params.i_s  = 0;
    	     params.k_s  = 0;
    	     params.N    = mesh.y+2;
-#ifdef __CUDACC__
-   	     cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+   	     MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
   	     Kernel_Launcher(d_CellArray,d_params,dimGridZ.x,dimGridZ.y,dimGridZ.z,
   	                     dimBlock.x,dimBlock.y,dimBlock.z,16000,h_CurrentPeriodic,
    	                     "CurrentPeriodic");
@@ -4805,7 +4751,7 @@ int SinglePeriodicBoundary(double *E,int dir,int start1,int end1,int start2,int 
 	     component_total = 2*N;
 
 //	     diagnose = (float *)malloc(sizeof(float)*sorts*component_total*8);
-//	     cudaMalloc((void**)&d_diagnose,sizeof(float)*sorts*component_total*8);
+//	     MemoryAllocate((void**)&d_diagnose,sizeof(float)*sorts*component_total*8);
 
 	     AllocateBinaryParticlesArrays(&(initial[0]),&(initial[1]),&(initial[2]));
 	     AllocateBinaryParticlesArraysFloat(&(diagnostics[0]),&(diagnostics[1]),&(diagnostics[2]));
@@ -4968,9 +4914,7 @@ void AssignCellsToArraysGPU()
     params.d_Hy = d_Hy;
 	params.d_Hz = d_Hz;
 	//		static int first  = 1;
-#ifdef __CUDACC__
-    cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+    MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
 
 	Kernel_Launcher(d_CellArray,d_params,mesh.x,mesh.y,mesh.z(),
 			CellExtent,CellExtent,CellExtent,16000,h_GPU_SetFieldsToCells_SingleNode,
@@ -4980,10 +4924,8 @@ void AssignCellsToArraysGPU()
 
 
 //	GPU_SetFieldsToCells<<<dimGrid, dimBlockExt>>>(d_CellArray,d_Ex,d_Ey,d_Ez,d_Hx,d_Hy,d_Hz);
-#ifdef __CUDACC__
-    err = cudaGetLastError();
-    cudaThreadSynchronize();
-#endif
+    err = getLastError();
+    ThreadSynchronize();
 //    TEST_ERROR(err);
 
 }
@@ -5083,9 +5025,9 @@ void write3D_GPUArray(char *name,double *d_d)
 #endif
 
 	d = (double *)malloc(sizeof(double)*mesh.size2());
-#ifdef __CUDACC__
-	int err = cudaMemcpy(d,d_d,sizeof(double)*mesh.size2(),cudaMemcpyDeviceToHost);
-#endif
+
+	int err = MemoryCopy(d,d_d,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+
 	write3Darray(name,d);
 }
 
@@ -5423,9 +5365,7 @@ void copyCellCurrentsToDevice(CellDouble *d_jx,CellDouble *d_jy,CellDouble *d_jz
 {
 	int err;
 
-#ifdef __CUDACC__
- 	err = cudaMemcpy(d_jx,h_jx,sizeof(CellDouble),cudaMemcpyHostToDevice);
-#endif
+ 	err = MemoryCopy(d_jx,h_jx,sizeof(CellDouble),HOST_TO_DEVICE);
  	if(err != 0)
  	        {
 #ifdef __CUDACC__
@@ -5433,9 +5373,7 @@ void copyCellCurrentsToDevice(CellDouble *d_jx,CellDouble *d_jy,CellDouble *d_jz
 #endif
  	       	exit(0);
  	        }
-#ifdef __CUDACC__
- 	err = cudaMemcpy(d_jy,h_jy,sizeof(CellDouble),cudaMemcpyHostToDevice);
-#endif
+ 	err = MemoryCopy(d_jy,h_jy,sizeof(CellDouble),HOST_TO_DEVICE);
  	if(err != 0)
  	        {
 #ifdef  __CUDACC__
@@ -5443,9 +5381,7 @@ void copyCellCurrentsToDevice(CellDouble *d_jx,CellDouble *d_jy,CellDouble *d_jz
 #endif
  	       	exit(0);
  	        }
-#ifdef __CUDACC__
- 	err = cudaMemcpy(d_jz,h_jz,sizeof(CellDouble),cudaMemcpyHostToDevice);
-#endif
+ 	err = MemoryCopy(d_jz,h_jz,sizeof(CellDouble),HOST_TO_DEVICE);
  	if(err != 0)
  	        {
 #ifdef __CUDACC__
@@ -6181,11 +6117,11 @@ puts("Jy");
 		{
 			first = 0;
 
-			cudaMalloc((void **)&h_f,sizeof(double)*size);
+			MemoryAllocate((void **)&h_f,sizeof(double)*size);
 		}
-#ifdef __CUDACC__
-		cudaMemcpy(h_f,d_f,sizeof(double)*size,cudaMemcpyDeviceToHost);
-#endif
+
+		MemoryCopy(h_f,d_f,sizeof(double)*size,DEVICE_TO_HOST);
+
 		 Cell<Particle,dims> c = (*AllCells)[0];
 		 double hx = c.get_hx(),hy = c.get_hy(),hz = c.get_hz();
 		 char fname[100];
@@ -6230,11 +6166,10 @@ puts("Jy");
 		memset(Jx,0,sizeof(double)*mesh.size2());
 		memset(Jy,0,sizeof(double)*mesh.size2());
 		memset(Jz,0,sizeof(double)*mesh.size2());
-#ifdef __CUDACC__
-		cudaMemset(d_Jx,0,sizeof(double)*mesh.size2());
-		cudaMemset(d_Jy,0,sizeof(double)*mesh.size2());
-	 	cudaMemset(d_Jz,0,sizeof(double)*mesh.size2());
-#endif
+		MemorySet(d_Jx,0,sizeof(double)*mesh.size2());
+		MemorySet(d_Jy,0,sizeof(double)*mesh.size2());
+	 	MemorySet(d_Jz,0,sizeof(double)*mesh.size2());
+
 
 		char name[100];
 
@@ -6246,9 +6181,7 @@ puts("Jy");
     	    		CellExtent,CellExtent,CellExtent);
 
 //	        GPU_SetAllCurrentsToZero<<<dimGrid, dimBlockExt,16000>>>(d_CellArray);
-#ifdef __CUDACC__
-    	    err = cudaGetLastError();
-#endif
+		    err = getLastError();
 //		    ThreadSynchronize();
 //		    TEST_ERROR(err);
 		    memory_monitor("CellOrder_StepAllCells3",nt);
@@ -6266,9 +6199,8 @@ puts("Jy");
 			params.particles_processed_by_a_single_thread = PARTICLE_BLOCK_X_SIZE;
 			params.flown_beam_particles  = 0;
 
-#ifdef __CUDACC__
-			cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+
+			MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
 
 		    Kernel_Launcher(d_CellArray,d_params,mesh.x+2,mesh.y+2,mesh.dimz2(),
 		    		params.particles_processed_by_a_single_thread,
@@ -6278,31 +6210,29 @@ puts("Jy");
 
 //		    write_field_component(nt,d_Jx,"afterStepAllCells","Jx",mesh.size2());
 
-
-#ifdef __CUDACC__
 		    DeviceSynchronize();
-		    cudaMemcpy(&params,d_params,sizeof(KernelParams),cudaMemcpyDeviceToHost);
-#endif
+
+		    MemoryCopy(&params,d_params,sizeof(KernelParams),DEVICE_TO_HOST);
+
 		    flown_beam_particles = params.flown_beam_particles;
 
 //            GPU_StepAllCells<<<dimGrid, dimBlock,16000>>>(d_CellArray/*,d_jx,d_jy,d_jz*/,
 //            		     		                          mass,q_mass,d_ctrlParticles,jmp,nt);
-#ifdef __CUDACC__
+            
             err = getLastError();
             ThreadSynchronize();
-#endif
 //            TEST_ERROR(err);
 
             memory_monitor("CellOrder_StepAllCells4",nt);
 
             //ListAllParticles(nt,"aStepAllCells");
 
-#ifdef __CUDACC__
-		    int err1 = cudaGetLastError();
-		    cudaDeviceSynchronize();
-		    int err2 = cudaGetLastError();
-		    char err_s[200];
 
+		    int err1 = getLastError();
+		    DeviceSynchronize();
+		    int err2 = getLastError();
+		    char err_s[200];
+#ifdef __CUDACC__
 		    strcpy(err_s,cudaGetErrorString(err2));
 #endif
 
@@ -6319,9 +6249,7 @@ puts("Jy");
 
 		   	params.d_Rho = d_Rho;
 		    	//		static int first  = 1;
-#ifdef __CUDACC__
-	    cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+	    MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
 
 //	    write_field_component(nt,d_Jx,"bWrite","Jx",mesh.size2());
     	Kernel_Launcher(d_CellArray,d_params,mesh.x+2,mesh.y+2,mesh.dimz2(),
@@ -6332,10 +6260,8 @@ puts("Jy");
 
 
 //	    GPU_WriteAllCurrents<<<dimGrid, dimExt,16000>>>(d_CellArray,0,d_Jx,d_Jy,d_Jz,d_Rho);
-#ifdef __CUDACC__
- 		    err = cudaGetLastError();
- 		    cudaThreadSynchronize();
-#endif
+ 		    err = getLastError();
+ 		    ThreadSynchronize();
 // 		    TEST_ERROR(err);
 
  		   memory_monitor("CellOrder_StepAllCells5",nt);
@@ -6346,17 +6272,15 @@ puts("Jy");
 #endif
 // 						write_field_component(nt,d_Jx,"bSUM","Jx",mesh.size2());
 
-#ifdef __CUDACC__
- 						cudaMemcpy(Jx,d_Jx,sizeof(double)*mesh.size2(),cudaMemcpyDeviceToHost);
- 						cudaMemcpy(Jy,d_Jy,sizeof(double)*mesh.size2(),cudaMemcpyDeviceToHost);
- 						cudaMemcpy(Jz,d_Jz,sizeof(double)*mesh.size2(),cudaMemcpyDeviceToHost);
-#endif
+ 						MemoryCopy(Jx,d_Jx,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+ 						MemoryCopy(Jy,d_Jy,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+ 						MemoryCopy(Jz,d_Jz,sizeof(double)*mesh.size2(),DEVICE_TO_HOST);
+
  						sumMPI(mesh.size2(),Jx,Jy,Jz);
-#ifdef __CUDACC__
- 						cudMemcpy(d_Jx,Jx,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
- 						cudMemcpy(d_Jy,Jy,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
- 						cudMemcpy(d_Jz,Jz,sizeof(double)*mesh.size2(),cudaMemcpyHostToDevice);
-#endif
+
+ 						MemoryCopy(d_Jx,Jx,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
+ 						MemoryCopy(d_Jy,Jy,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
+ 						MemoryCopy(d_Jz,Jz,sizeof(double)*mesh.size2(),HOST_TO_DEVICE);
 
  						write_field_component(nt,d_Jx,"aSUM","Jx",mesh.size2());
  						write_field_component(nt,d_Ex,"aSUM","Ex",mesh.size2());
@@ -6378,35 +6302,29 @@ puts("Jy");
 
               stage  = (int *)malloc(sizeof(int)*mesh.size2());
               stage1 = (int *)malloc(sizeof(int)*mesh.size2());
-#ifdef __CUDACC__
-              cudaMalloc((void**)&d_stage,sizeof(int)*mesh.size2());
-              cudaMalloc((void**)&d_stage1,sizeof(int)*mesh.size2());
-#endif
+
+              MemoryAllocate((void**)&d_stage,sizeof(int)*mesh.size2());
+              MemoryAllocate((void**)&d_stage1,sizeof(int)*mesh.size2());
+
           	  params.nt = nt;
           	  params.d_stage = d_stage;
+          	  MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
 
-#ifdef __CUDACC__
-          	  cudMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
           	  Kernel_Launcher(d_CellArray,d_params,mesh.x+2,mesh.y+2,mesh.dimz2(),
           	                1,1,1,16000,h_GPU_MakeDepartureLists_SingleNode,
           	                "MakeDepartureLists");
 
 //              GPU_MakeDepartureLists<<<dimGrid, dimBlockOne>>>(d_CellArray,nt,d_stage);
-#ifdef __CUDACC__
-              after_MakeDepartureLists = cudaGetLastError();
-              err = cudaGetLastError();
-              cudaThreadSynchronize();
-#endif
+              after_MakeDepartureLists = getLastError();
+              err = getLastError();
+              ThreadSynchronize();
 //              TEST_ERROR(after_MakeDepartureLists);
 #ifdef BALANCING_PRINTS
               printf("after_MakeDepartureLists %d %s\n",after_MakeDepartureLists,cudaGetErrorString(after_MakeDepartureLists));
 #endif
-#ifdef __CUDACC__
-              cudaDeviceSynchronize();
 
-              err = cudMemcpy(stage,d_stage,sizeof(int)*mesh.size2(),cudaMemcpyDeviceToHost);
-#endif
+                                DeviceSynchronize();
+              err = MemoryCopy(stage,d_stage,sizeof(int)*mesh.size2(),DEVICE_TO_HOST);
               if(err != 0)
               {
             	  puts("copy error");
@@ -6427,13 +6345,10 @@ puts("Jy");
               printf("before_ArrangeFlights %d %s\n",before_ArrangeFlights,cudaGetErrorString(before_ArrangeFlights));
 #endif
 
-#ifdef __CUDACC__
-              cudaMemset(d_stage1,0,sizeof(int)*mesh.size2());
+
+              MemorySet(d_stage1,0,sizeof(int)*mesh.size2());
           	  params.d_stage = d_stage1;
-
-
-          	  cudMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+          	  MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
 
           	  Kernel_Launcher(d_CellArray,d_params,mesh.x+2,mesh.y+2,mesh.dimz2(),
           	                1,1,1,16000,h_ArrangeFlights,
@@ -6441,19 +6356,15 @@ puts("Jy");
 
 
 //              GPU_ArrangeFlights<<<dimGridBulk, dimBlockOne>>>(d_CellArray,nt,d_stage1);
-#ifdef __CUDACC__
-              after_ArrangeFlights = cudaGetLastError();
-              cudaThreadSynchronize();
-#endif
+              after_ArrangeFlights = getLastError();
+              ThreadSynchronize();
 //              TEST_ERROR(after_MakeDepartureLists);
 #ifdef BALANCING_PRINTS
               printf("after_ArrangeFlights %d %s\n",after_ArrangeFlights,cudaGetErrorString(after_ArrangeFlights));
                                 DeviceSynchronize();
 #endif
 
-#ifdef __CUDACC__
-              err = cudMemcpy(stage1,d_stage1,sizeof(int)*mesh.size2(),cudaMemcpyDeviceToHost);
-#endif
+              err = MemoryCopy(stage1,d_stage1,sizeof(int)*mesh.size2(),DEVICE_TO_HOST);
                                               if(err != 0)
                                               {
                                             	  puts("copy error");
@@ -6484,11 +6395,10 @@ puts("Jy");
 
 	    //if(sum != c.number_of_particles)
 	    //	}
-#ifdef __CUDACC__
-	    cudMemcpy(npJx,Jx,sizeof(double)*mesh.size2());
-	   	cudMemcpy(npJy,Jy,sizeof(double)*mesh.size2());
-	   	cudMemcpy(npJz,Jz,sizeof(double)*mesh.size2());
-#endif
+
+	    memcpy(npJx,Jx,sizeof(double)*mesh.size2());
+	   	memcpy(npJy,Jy,sizeof(double)*mesh.size2());
+	   	memcpy(npJz,Jz,sizeof(double)*mesh.size2());
 	   	checkNonPeriodicCurrents(nt);
 	    SetPeriodicCurrents(nt);
 	    CheckArray(Jx,dbgJx);
@@ -6692,8 +6602,8 @@ int readControlFile(int nt)
         ctrlParticles = (double *)malloc(size);
 #ifdef ATTRIBUTES_CHECK
         memset(ctrlParticles,0,size);
-        cudaMalloc((void**)&d_ctrlParticles,size);
-        cudaMemset(d_ctrlParticles,0,size);
+        MemoryAllocate((void**)&d_ctrlParticles,size);
+        MemorySet(d_ctrlParticles,0,size);
         size_ctrlParticles = size;
 #endif
 	}
@@ -6843,7 +6753,7 @@ int checkParticleAttributes(int nt)
 	err = getLastError();
 
 #ifdef ATTRIBUTES_CHECK
-    err = cudaMemcpy(check_ctrlParticles,d_ctrlParticles,
+    err = MemoryCopy(check_ctrlParticles,d_ctrlParticles,
     		   //1,
     		   size_ctrlParticles, // /PARTICLE_ARRAY_PORTION,
     		   DEVICE_T_HOST);
@@ -6851,7 +6761,7 @@ int checkParticleAttributes(int nt)
 #endif
     if(err != 0)
     {
-    	printf("cudaMemcpy before attributes error %d %s\n",err,cudaGetErrorString(err));
+    	printf("MemoryCopy before attributes error %d %s\n",err,cudaGetErrorString(err));
     	exit(0);
     }
 
@@ -6889,13 +6799,11 @@ int checkParticleNumbers(GPUCell<Particle,dims> ** h_cp,int num)
 	size = (*AllCells).size();
 
 	h_numbers = (int *)malloc(size*sizeof(int));
-	cudaMalloc((void**)&d_numbers,size*sizeof(int));
+	MemoryAllocate((void**)&d_numbers,size*sizeof(int));
 
 	params.numbers = d_numbers;
+	MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
 
-#ifdef __CUDACC__
-	cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
 	Kernel_Launcher(d_CellArray,d_params,mesh.size2(),1,1,
 	                1,1,1,16000,h_GPU_GetCellNumbers_SingleNode,
 	                "GetCellNumbers");
@@ -6904,9 +6812,9 @@ int checkParticleNumbers(GPUCell<Particle,dims> ** h_cp,int num)
     err = getLastError();
     ThreadSynchronize();
 //    TEST_ERROR(err);
-#ifdef __CUDACC__
-	err = cudaMemcpy(h_numbers,d_numbers,size*sizeof(int),cudaMemcpyDeviceToHost);
-#endif
+
+	err = MemoryCopy(h_numbers,d_numbers,size*sizeof(int),DEVICE_TO_HOST);
+
 
 	for(int i = 0;i < (*AllCells).size();i++)
 	{
@@ -7006,9 +6914,9 @@ int memory_monitor(char *legend,int nt)
 	size_t m_free,m_total;
 	struct sysinfo info;
 
-#ifdef __CUDACC__
-	int err = cudaMemGetInfo(&m_free,&m_total);
-#endif
+
+	int err = GetDeviceMemory(&m_free,&m_total);
+
 	sysinfo(&info);
 	fprintf(f,"step %10d %50s GPU memory total %10d free %10d free CPU memory %10u \n",nt,legend,m_total/1024/1024,m_free/1024/1024,info.freeram/1024/1024);
 
@@ -7028,12 +6936,12 @@ void BeamInput(int nt)
      KernelParams params;
 //     params.flown_beam_particles  = 0;
 
-//     cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
+//     MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
 //
 //          Kernel_Launcher(d_CellArray,d_params,mesh.x,mesh.y+2,mesh.dimz2(),
 //                  	                1,1,1,16000,h_GPU_GetFlownBeamNumber_SingleNode,
 //                  	                "GPU_GetFlownBeamNumber_SingleNode");
-//    cudaMemcpy(&params,d_params,sizeof(KernelParams),cudaMemcpyDeviceToHost);
+//    MemoryCopy(&params,d_params,sizeof(KernelParams),DEVICE_TO_HOST);
 
      d_N = flown_beam_particles;
 #ifdef BEAM_ADD_PRINTS
@@ -7144,18 +7052,15 @@ void BeamInput(int nt)
 
      fclose(fa);
 
+     MemoryAllocate((void **)&d_p_send_array,sizeof(Particle)*d_N);
+     MemoryCopy(d_p_send_array,p_send_array,sizeof(Particle)*d_N,HOST_TO_DEVICE);
 
-#ifdef __CUDACC__
-     cudaMalloc((void **)&d_p_send_array,sizeof(Particle)*d_N);
-     cudaMemcpy(d_p_send_array,p_send_array,sizeof(Particle)*d_N,cudaMemcpyHostToDevice);
-#endif
 
 
      params.d_p_send_array = (int *)d_p_send_array;
      params.p_send_array_size = d_N;
-#ifdef __CUDACC__
-     cudaMemcpy(d_params,&params,sizeof(KernelParams),cudaMemcpyHostToDevice);
-#endif
+     MemoryCopy(d_params,&params,sizeof(KernelParams),HOST_TO_DEVICE);
+
      Kernel_Launcher(d_CellArray,d_params,mesh.x+2,mesh.y+2,mesh.dimz2(),
              	                1,1,1,16000,h_AddParticlesToCells,
              	                "AddParticlesToCells");

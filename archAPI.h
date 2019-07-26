@@ -12,6 +12,18 @@
 
 #include<string.h>
 
+#ifdef __CUDACC__
+#define HOST_TO_DEVICE   cudaHostToDevice
+#define HOST_TO_HOST     cudaHostToHost
+#define DEVICE_TO_HOST   cudaDeviceToHost
+#define DEVICE_TO_DEVICE cudaDeviceToDevice
+#else
+#define HOST_TO_DEVICE  0 
+#define HOST_TO_HOST    0 
+#define DEVICE_TO_HOST  0 
+#define DEVICE_TO_DEVICE 0
+#endif
+
 //#define DETAILED_CURRENTS_WRITE
 //#define OMP_DETAILED_OUTPUT
 //#define OMP_OUTPUT
@@ -165,82 +177,24 @@ typedef struct {
 //}
 
 
+#ifndef __CUDACC__
+#define cudaMemcpy MemoryCopy
+#endif
 
-// int MemoryCopy(void* dst,void *src,size_t size,int dir)
-//{
-//	int err = 0;
-//
-//#ifdef __CUDACC__
-//	cudaMemcpyKind cuda_dir;
-//
-//	if(dir == HOST_TO_DEVICE) cuda_dir = cudaMemcpyHostToDevice;
-//	if(dir == HOST_TO_HOST) cuda_dir = cudaMemcpyHostToHost;
-//	if(dir == DEVICE_TO_HOST) cuda_dir = cudaMemcpyDeviceToHost;
-//	if(dir == DEVICE_TO_DEVICE) cuda_dir = cudaMemcpyDeviceToDevice;
-//
-//
-//
-//	return err = (int)cudaMemcpy(dst,src,size,cuda_dir);
-//#else
-//	memcpy(dst,src,size);
-//#endif
-//	return err;
-//}
+ int MemoryCopy(void* dst,void *src,size_t size,int dir);
 
-// int MemoryAllocate(void** dst,size_t size)
-//{
-//#ifdef __CUDACC__
-//	cudaMalloc(dst,size);
-//#else
-//	*dst = malloc(size);
-//#endif
-//}
-//
-// int GetDeviceMemory(size_t *m_free,size_t *m_total)
-//{
-//#ifdef __CUDACC__
-//	return cudaMemGetInfo(m_free,m_total);
-//#else
-//	*m_free = 0;
-//	*m_total = 0;
-//	return 0;
-//#endif
-//}
-//
-// int MemorySet(void *s, int c, size_t n)
-//{
-//#ifdef __CUDACC__
-//	cudaMemset(s,c,n);
-//#else
-//	memset(s,c,n);
-//
-//#endif
-//}
-//
-//
-//
-// int DeviceSynchronize()
-//{
-//#ifdef __CUDACC__
-//	return cudaDeviceSynchronize();
-//#endif
-//}
-//
-// int ThreadSynchronize()
-//{
-//#ifdef __CUDACC__
-//	return cudaThreadSynchronize();
-//#endif
-//}
-//
-// int getLastError()
-//{
-//#ifdef __CUDACC__
-//	return cudaGetLastError();
-//#endif
-//	return 0;
-//}
+ int MemoryAllocate(void** dst,size_t size);
 
+ int GetDeviceMemory(size_t *m_free,size_t *m_total);
+
+ int MemorySet(void *s, int c, size_t n);
+
+ int DeviceSynchronize();
+
+ int ThreadSynchronize();
+
+
+ int getLastError();
 
 //virtual ~cudaAPI(){}
 //

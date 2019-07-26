@@ -8,6 +8,8 @@
 #ifndef READ_PARTICLES_H_
 #define READ_PARTICLES_H_
 
+#include <stdlib.h>
+#include <stdio.h>
 
 #define SORTS 3
 
@@ -46,5 +48,11 @@ typedef ParticleFloatArrays ParticleFloatArraysGroup[SORTS];
 //    	     int *total_beam_electrons,int Nx,int Ny,int Nz);
 
 
-
+          void AllocateBinaryParticlesArrays(
+	                            ParticleArrays *ions,ParticleArrays *electrons,ParticleArrays *beam_electrons);
+	  void AllocateBinaryParticlesArraysFloat(
+                          ParticleFloatArrays *ions,ParticleFloatArrays *electrons,ParticleFloatArrays *beam_electrons);
+	  int AllocateDeviceParticleDiagnosticPointers(ParticleFloatArraysGroup **d_pfag,
+			                                       ParticleFloatArraysGroup *host_copy_d_pfag,
+			                                       ParticleFloatArraysGroup *pfag);
 #endif /* READ_PARTICLES_H_ */
