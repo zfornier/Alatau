@@ -35,8 +35,8 @@
 //#include <unistd.h>
 //#include <stdio.h>
 #include <errno.h>
-
-
+#include "read_particles.h"
+#include "archAPI.h"
 
 
 #include <time.h>
@@ -61,7 +61,7 @@
 #include <sys/sysinfo.h>
 #include <sys/time.h>
 
-#include "read_particles.c"
+#include "read_particles.h"
 
 #include "init.h"
 #include "diagnose.h"
